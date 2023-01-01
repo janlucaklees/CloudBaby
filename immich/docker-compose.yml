@@ -34,7 +34,7 @@ services:
       PG_DATA: /var/lib/postgresql/data
     
     volumes:
-      - ./home/jlk/apps/immich/database/var/lib/postgresql/data:/var/lib/postgresql/data
+      - ${DB_VOLUME}:/var/lib/postgresql/data
     
     networks:
       - immich_network
