@@ -135,7 +135,6 @@ services:
   
   immich-proxy:
     image: altran1502/immich-proxy:release
-    container_name: immich_proxy
     restart: unless-stopped
 
     environment:
