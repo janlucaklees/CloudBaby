@@ -9,6 +9,7 @@ services:
       - '--scope ${PROJECT_NAME}'
       - '--label-enable'
       - '--cleanup'
+      - '--interval ${POLL_INTERVAL}'
     restart: unless-stopped
 
     labels:
