@@ -3,7 +3,7 @@ version: "3.8"
 services:
 
 
-  cache:
+  immich-cache:
     image: redis:7-alpine
     restart: unless-stopped
 
@@ -15,7 +15,7 @@ services:
       - immich_network
 
 
-  database:
+  immich-database:
     image: postgres:15
     restart: unless-stopped
 
@@ -59,8 +59,8 @@ services:
       - immich_network
 
     depends_on:
-      - cache
-      - database
+      - immich-cache
+      - immich-database
 
 
   immich-microservices:
@@ -84,8 +84,8 @@ services:
       - immich_network
 
     depends_on:
-      - cache
-      - database
+      - immich-cache
+      - immich-database
 
 
   immich-machine-learning:
@@ -109,7 +109,7 @@ services:
       - immich_network
     
     depends_on:
-      - database
+      - immich-database
 
 
   immich-web:
@@ -130,7 +130,7 @@ services:
       - immich_network
     
     depends_on:
-      - database
+      - immich-database
 
   
   immich-proxy:
