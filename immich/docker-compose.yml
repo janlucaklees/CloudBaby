@@ -3,79 +3,28 @@ version: "3.8"
 services:
 
 
-  immich-server:
-    image: altran1502/immich-server:release
-    entrypoint: ["/bin/sh", "./start-server.sh"]
-    volumes:
-      - ${UPLOAD_LOCATION}:/usr/src/app/upload
-    env_file:
-      - .env
-    environment:
-      - NODE_ENV=production
-    depends_on:
-      - redis
-      - database
-    restart: unless-stopped
-    networks:
-      - immich_network
-
-
-  immich-microservices:
-    image: altran1502/immich-server:release
-    entrypoint: ["/bin/sh", "./start-microservices.sh"]
-    volumes:
-      - ${UPLOAD_LOCATION}:/usr/src/app/upload
-    env_file:
-      - .env
-    environment:
-      - NODE_ENV=production
-    depends_on:
-      - redis
-      - database
-    restart: unless-stopped
-    networks:
-      - immich_network
-
-
-  immich-machine-learning:
-    image: altran1502/immich-machine-learning:release
-    entrypoint: ["/bin/sh", "./entrypoint.sh"]
-    volumes:
-      - ${UPLOAD_LOCATION}:/usr/src/app/upload
-    env_file:
-      - .env
-    environment:
-      - NODE_ENV=production
-    depends_on:
-      - database
-    restart: unless-stopped
-    networks:
-      - immich_network
-
-
-  immich-web:
-    image: altran1502/immich-web:release
-    entrypoint: ["/bin/sh", "./entrypoint.sh"]
-    env_file:
-      - .env
-    environment:
-      - PUBLIC_IMMICH_SERVER_URL=${IMMICH_SERVER_URL}
-    restart: unless-stopped
-    networks:
-      - immich_network
-
-
-  redis:
+  cache:
+    image: redis:7-alpine
     container_name: immich_redis
-    image: redis:6.2
     restart: unless-stopped
+
+    labels:
+      - 'com.centurylinklabs.watchtower.scope=${PROJECT_NAME}'
+      - 'com.centurylinklabs.watchtower.enable=true'
+
     networks:
       - immich_network
 
 
   database:
-    container_name: immich_postgres
     image: postgres:15
+    container_name: immich_postgres
+    restart: unless-stopped
+
+    labels:
+      - 'com.centurylinklabs.watchtower.scope=${PROJECT_NAME}'
+      - 'com.centurylinklabs.watchtower.enable=true'
+
     env_file:
       - .env
     environment:
@@ -83,16 +32,113 @@ services:
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_DB: ${DB_DATABASE_NAME}
       PG_DATA: /var/lib/postgresql/data
+    
     volumes:
       - ./home/jlk/apps/immich/database/var/lib/postgresql/data:/var/lib/postgresql/data
-    restart: unless-stopped
+    
     networks:
       - immich_network
 
 
+  immich-server:
+    image: altran1502/immich-server:release
+    entrypoint: ["/bin/sh", "./start-server.sh"]
+    restart: unless-stopped
+
+    labels:
+      - 'com.centurylinklabs.watchtower.scope=${PROJECT_NAME}'
+      - 'com.centurylinklabs.watchtower.enable=true'
+
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+    
+    volumes:
+      - ${UPLOAD_LOCATION}:/usr/src/app/upload
+    
+    networks:
+      - immich_network
+
+    depends_on:
+      - cache
+      - database
+
+
+  immich-microservices:
+    image: altran1502/immich-server:release
+    entrypoint: ["/bin/sh", "./start-microservices.sh"]
+    restart: unless-stopped
+
+    labels:
+      - 'com.centurylinklabs.watchtower.scope=${PROJECT_NAME}'
+      - 'com.centurylinklabs.watchtower.enable=true'
+
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+
+    volumes:
+      - ${UPLOAD_LOCATION}:/usr/src/app/upload
+    
+    networks:
+      - immich_network
+
+    depends_on:
+      - cache
+      - database
+
+
+  immich-machine-learning:
+    image: altran1502/immich-machine-learning:release
+    entrypoint: ["/bin/sh", "./entrypoint.sh"]
+    restart: unless-stopped
+
+    labels:
+      - 'com.centurylinklabs.watchtower.scope=${PROJECT_NAME}'
+      - 'com.centurylinklabs.watchtower.enable=true'
+
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+
+    volumes:
+      - ${UPLOAD_LOCATION}:/usr/src/app/upload
+    
+    networks:
+      - immich_network
+    
+    depends_on:
+      - database
+
+
+  immich-web:
+    image: altran1502/immich-web:release
+    entrypoint: ["/bin/sh", "./entrypoint.sh"]
+    restart: unless-stopped
+
+    labels:
+      - 'com.centurylinklabs.watchtower.scope=${PROJECT_NAME}'
+      - 'com.centurylinklabs.watchtower.enable=true'
+
+    env_file:
+      - .env
+    environment:
+      - PUBLIC_IMMICH_SERVER_URL=${IMMICH_SERVER_URL}
+
+    networks:
+      - immich_network
+    
+    depends_on:
+      - database
+
+  
   immich-proxy:
-    container_name: immich_proxy
     image: altran1502/immich-proxy:release
+    container_name: immich_proxy
+    restart: unless-stopped
 
     environment:
       # Make sure these values get passed through from the env file
@@ -115,6 +161,9 @@ services:
       - "traefik.http.routers.immich-http.entrypoints=http"
       - "traefik.http.routers.immich-http.rule=Host(`${IMMICH_DOMAIN}`)"
       - "traefik.http.routers.immich-http.middlewares=immich-https"
+
+      - 'com.centurylinklabs.watchtower.scope=${PROJECT_NAME}'
+      - 'com.centurylinklabs.watchtower.enable=true'
     
     networks:
       - immich_network
@@ -122,8 +171,7 @@ services:
 
     depends_on:
       - immich-server
-    
-    restart: unless-stopped
+      - immich-web
 
 
 networks:

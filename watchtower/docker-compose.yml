@@ -9,6 +9,7 @@ services:
       - '--scope ${PROJECT_NAME}'
       - '--label-enable'
       - '--cleanup'
+    restart: unless-stopped
 
     labels:
       - 'com.centurylinklabs.watchtower.scope=${PROJECT_NAME}'
@@ -21,5 +22,3 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 
     network_mode: none
-
-    restart: unless-stopped
