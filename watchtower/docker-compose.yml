@@ -5,11 +5,12 @@ services:
 
   watchtower:
     image: containrrr/watchtower
+    restart: unless-stopped
+    
     command:
       - '--label-enable'
       - '--cleanup'
       - '--interval ${POLL_INTERVAL}'
-    restart: unless-stopped
 
     labels:
       - 'com.centurylinklabs.watchtower.enable=true'
