@@ -6,14 +6,10 @@ services:
   traefik:
     image: traefik:2.9
 
-    healthcheck:
-      test: [ "CMD", "traefik", "healthcheck" ]
-
     command:
       # - "--api.insecure=true"
       # - "--log.level=DEBUG"
 
-      - "--ping"
 
       - "--providers.docker"
       - "--providers.docker.exposedbydefault=false"
