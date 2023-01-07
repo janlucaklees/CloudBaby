@@ -7,7 +7,7 @@ services:
     image: traefik:2.9
 
     command:
-      # - "--api.insecure=true"
+      - "--api"
       - "--log.level=${LOG_LEVEL}"
 
       - "--providers.docker"
@@ -21,6 +21,18 @@ services:
       - "--certificatesresolvers.letsencrypt.acme.storage=/.letsencrypt/acme.json"
     
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik_network"
+
+      - "traefik.http.routers.traefik-https.entrypoints=https"
+      - "traefik.http.routers.traefik-https.rule=Host(`${TRAEFIK_DOMAIN}`)"
+      - "traefik.http.routers.traefik-https.tls.certresolver=letsencrypt"
+
+      - "traefik.http.routers.traefik-https.service=api@internal"
+
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=${BASIC_AUTH}"
+      - "traefik.http.routers.traefik-https.middlewares=traefik-auth"
+
       - 'com.centurylinklabs.watchtower.scope=${PROJECT_NAME}'
       - 'com.centurylinklabs.watchtower.enable=true'
     
@@ -37,7 +49,6 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      # - "8080:8080"
 
     restart: unless-stopped
 
