@@ -8,7 +8,6 @@ services:
     restart: unless-stopped
 
     labels:
-      - 'com.centurylinklabs.watchtower.scope=${PROJECT_NAME}'
       - 'com.centurylinklabs.watchtower.enable=true'
 
     networks:
@@ -20,7 +19,6 @@ services:
     restart: unless-stopped
 
     labels:
-      - 'com.centurylinklabs.watchtower.scope=${PROJECT_NAME}'
       - 'com.centurylinklabs.watchtower.enable=true'
 
     env_file:
@@ -44,7 +42,6 @@ services:
     restart: unless-stopped
 
     labels:
-      - 'com.centurylinklabs.watchtower.scope=${PROJECT_NAME}'
       - 'com.centurylinklabs.watchtower.enable=true'
 
     env_file:
@@ -69,7 +66,6 @@ services:
     restart: unless-stopped
 
     labels:
-      - 'com.centurylinklabs.watchtower.scope=${PROJECT_NAME}'
       - 'com.centurylinklabs.watchtower.enable=true'
 
     env_file:
@@ -94,7 +90,6 @@ services:
     restart: unless-stopped
 
     labels:
-      - 'com.centurylinklabs.watchtower.scope=${PROJECT_NAME}'
       - 'com.centurylinklabs.watchtower.enable=true'
 
     env_file:
@@ -118,7 +113,6 @@ services:
     restart: unless-stopped
 
     labels:
-      - 'com.centurylinklabs.watchtower.scope=${PROJECT_NAME}'
       - 'com.centurylinklabs.watchtower.enable=true'
 
     env_file:
@@ -159,7 +153,6 @@ services:
       - "traefik.http.routers.immich-http.rule=Host(`${IMMICH_DOMAIN}`)"
       - "traefik.http.routers.immich-http.middlewares=immich-https"
 
-      - 'com.centurylinklabs.watchtower.scope=${PROJECT_NAME}'
       - 'com.centurylinklabs.watchtower.enable=true'
     
     networks:

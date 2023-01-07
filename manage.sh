@@ -1,14 +1,13 @@
 #!/bin/bash
 
 # Give the first argument a name for more readable code.
-service_group=$1
-service_group_root="./${service_group}"
-service_group_env="${service_group_root}/.env"
-service_group_compose="${service_group_root}/docker-compose.yml"
+service_name=$1
+service_root="./${service_name}"
+service_compose="${service_root}/docker-compose.yml"
 
-# Make sure there actually is some configuration for the given service group.
-if [ ! -f  "${service_group_compose}" ]; then
-    echo "No service group '${service_group}' found."
+# Make sure there actually is some configuration for the given service name.
+if [ ! -f  "${service_compose}" ]; then
+    echo "No service group '${service_name}' found."
     exit 1
 fi
 
@@ -16,7 +15,7 @@ fi
 . ${PWD}/.env
 
 # Assemble the docker-compose command
-DC="PROJECT_NAME=${PROJECT_NAME} docker compose --project-name ${PROJECT_NAME}"
+DC="docker compose"
 
-cd $service_group_root
+cd $service_root
 eval $DC "${@:2}"
