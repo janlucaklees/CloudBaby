@@ -8,8 +8,7 @@ services:
 
     command:
       # - "--api.insecure=true"
-      # - "--log.level=DEBUG"
-
+      - "--log.level=${LOG_LEVEL}"
 
       - "--providers.docker"
       - "--providers.docker.exposedbydefault=false"
