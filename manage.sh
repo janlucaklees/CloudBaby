@@ -12,7 +12,9 @@ if [ ! -f  "${service_compose}" ]; then
 fi
 
 # Load environment variables
+set -o allexport
 . ${PWD}/.env
+set +o allexport
 
 # Assemble the docker-compose command
 DC="docker compose"
