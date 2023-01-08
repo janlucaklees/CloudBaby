@@ -31,7 +31,7 @@ services:
 
 
   server:
-    image: altran1502/immich-server:${IMMICH_TAG}
+    image: altran1502/immich-server:${TAG}
     entrypoint: ["/bin/sh", "./start-server.sh"]
     restart: unless-stopped
 
@@ -52,7 +52,7 @@ services:
 
 
   microservices:
-    image: altran1502/immich-server:${IMMICH_TAG}
+    image: altran1502/immich-server:${TAG}
     entrypoint: ["/bin/sh", "./start-microservices.sh"]
     restart: unless-stopped
 
@@ -73,7 +73,7 @@ services:
 
 
   machine-learning:
-    image: altran1502/immich-machine-learning:${IMMICH_TAG}
+    image: altran1502/immich-machine-learning:${TAG}
     entrypoint: ["/bin/sh", "./entrypoint.sh"]
     restart: unless-stopped
 
@@ -93,7 +93,7 @@ services:
 
 
   web:
-    image: altran1502/immich-web:${IMMICH_TAG}
+    image: altran1502/immich-web:${TAG}
     entrypoint: ["/bin/sh", "./entrypoint.sh"]
     restart: unless-stopped
 
@@ -110,7 +110,7 @@ services:
 
 
   proxy:
-    image: altran1502/immich-proxy:${IMMICH_TAG}
+    image: altran1502/immich-proxy:${TAG}
     restart: unless-stopped
 
     environment:
@@ -125,14 +125,14 @@ services:
       - "traefik.http.services.immich.loadbalancer.server.port=8080"
 
       - "traefik.http.routers.immich-https.entrypoints=https"
-      - "traefik.http.routers.immich-https.rule=Host(`${IMMICH_DOMAIN}`)"
+      - "traefik.http.routers.immich-https.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.immich-https.tls.certresolver=letsencrypt"
 
       - "traefik.http.middlewares.immich-https.redirectscheme.scheme=https"
       - "traefik.http.middlewares.immich-https.redirectscheme.permanent=true"
 
       - "traefik.http.routers.immich-http.entrypoints=http"
-      - "traefik.http.routers.immich-http.rule=Host(`${IMMICH_DOMAIN}`)"
+      - "traefik.http.routers.immich-http.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.immich-http.middlewares=immich-https"
 
       - 'com.centurylinklabs.watchtower.enable=true'
