@@ -3,19 +3,16 @@ version: "3.8"
 services:
 
 
-  immich-cache:
-    image: redis:7-alpine
+  cache:
+    image: redis:${REDIS_TAG}
     restart: unless-stopped
 
     labels:
       - 'com.centurylinklabs.watchtower.enable=true'
 
-    networks:
-      - immich_network
 
-
-  immich-database:
-    image: postgres:15
+  database:
+    image: postgres:${DB_TAG}
     restart: unless-stopped
 
     labels:
@@ -28,16 +25,13 @@ services:
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_DB: ${DB_DATABASE_NAME}
       PG_DATA: /var/lib/postgresql/data
-    
+
     volumes:
       - ${DB_VOLUME}:/var/lib/postgresql/data
-    
-    networks:
-      - immich_network
 
 
-  immich-server:
-    image: altran1502/immich-server:release
+  server:
+    image: altran1502/immich-server:${IMMICH_TAG}
     entrypoint: ["/bin/sh", "./start-server.sh"]
     restart: unless-stopped
 
@@ -48,20 +42,17 @@ services:
       - .env
     environment:
       - NODE_ENV=production
-    
+
     volumes:
       - ${UPLOAD_LOCATION}:/usr/src/app/upload
-    
-    networks:
-      - immich_network
 
     depends_on:
-      - immich-cache
-      - immich-database
+      - cache
+      - database
 
 
-  immich-microservices:
-    image: altran1502/immich-server:release
+  microservices:
+    image: altran1502/immich-server:${IMMICH_TAG}
     entrypoint: ["/bin/sh", "./start-microservices.sh"]
     restart: unless-stopped
 
@@ -75,17 +66,14 @@ services:
 
     volumes:
       - ${UPLOAD_LOCATION}:/usr/src/app/upload
-    
-    networks:
-      - immich_network
 
     depends_on:
-      - immich-cache
-      - immich-database
+      - cache
+      - database
 
 
-  immich-machine-learning:
-    image: altran1502/immich-machine-learning:release
+  machine-learning:
+    image: altran1502/immich-machine-learning:${IMMICH_TAG}
     entrypoint: ["/bin/sh", "./entrypoint.sh"]
     restart: unless-stopped
 
@@ -99,16 +87,13 @@ services:
 
     volumes:
       - ${UPLOAD_LOCATION}:/usr/src/app/upload
-    
-    networks:
-      - immich_network
-    
+
     depends_on:
-      - immich-database
+      - database
 
 
-  immich-web:
-    image: altran1502/immich-web:release
+  web:
+    image: altran1502/immich-web:${IMMICH_TAG}
     entrypoint: ["/bin/sh", "./entrypoint.sh"]
     restart: unless-stopped
 
@@ -120,15 +105,12 @@ services:
     environment:
       - PUBLIC_IMMICH_SERVER_URL=${IMMICH_SERVER_URL}
 
-    networks:
-      - immich_network
-    
     depends_on:
-      - immich-database
+      - database
 
-  
-  immich-proxy:
-    image: altran1502/immich-proxy:release
+
+  proxy:
+    image: altran1502/immich-proxy:${IMMICH_TAG}
     restart: unless-stopped
 
     environment:
@@ -154,17 +136,16 @@ services:
       - "traefik.http.routers.immich-http.middlewares=immich-https"
 
       - 'com.centurylinklabs.watchtower.enable=true'
-    
+
     networks:
-      - immich_network
+      - default
       - traefik_network
 
     depends_on:
-      - immich-server
-      - immich-web
+      - server
+      - web
 
 
 networks:
-  immich_network:
   traefik_network:
     external: true

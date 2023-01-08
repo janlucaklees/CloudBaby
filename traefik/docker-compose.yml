@@ -4,7 +4,7 @@ version: '3.3'
 services:
 
   traefik:
-    image: traefik:2.9
+    image: traefik:${TREAFIK_TAG}
     restart: unless-stopped
 
     command:
