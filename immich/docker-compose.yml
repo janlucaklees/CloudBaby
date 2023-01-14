@@ -8,7 +8,7 @@ services:
     restart: unless-stopped
 
     labels:
-      - 'com.centurylinklabs.watchtower.enable=true'
+      com.centurylinklabs.watchtower.enable: "true"
 
 
   database:
@@ -16,7 +16,7 @@ services:
     restart: unless-stopped
 
     labels:
-      - 'com.centurylinklabs.watchtower.enable=true'
+      com.centurylinklabs.watchtower.enable: "true"
 
     env_file:
       - .env
@@ -36,7 +36,7 @@ services:
     restart: unless-stopped
 
     labels:
-      - 'com.centurylinklabs.watchtower.enable=true'
+      com.centurylinklabs.watchtower.enable: "true"
 
     env_file:
       - .env
@@ -57,7 +57,7 @@ services:
     restart: unless-stopped
 
     labels:
-      - 'com.centurylinklabs.watchtower.enable=true'
+      com.centurylinklabs.watchtower.enable: "true"
 
     env_file:
       - .env
@@ -78,7 +78,7 @@ services:
     restart: unless-stopped
 
     labels:
-      - 'com.centurylinklabs.watchtower.enable=true'
+      com.centurylinklabs.watchtower.enable: "true"
 
     env_file:
       - .env
@@ -98,7 +98,7 @@ services:
     restart: unless-stopped
 
     labels:
-      - 'com.centurylinklabs.watchtower.enable=true'
+      com.centurylinklabs.watchtower.enable: "true"
 
     env_file:
       - .env
@@ -119,23 +119,23 @@ services:
       - IMMICH_WEB_URL
 
     labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=traefik_network"
+      traefik.enable: "true"
+      traefik.docker.network: "traefik_network"
 
-      - "traefik.http.services.immich.loadbalancer.server.port=8080"
+      traefik.http.services.immich.loadbalancer.server.port: "8080"
 
-      - "traefik.http.routers.immich-https.entrypoints=https"
-      - "traefik.http.routers.immich-https.rule=Host(`${DOMAIN}`)"
-      - "traefik.http.routers.immich-https.tls.certresolver=letsencrypt"
+      traefik.http.routers.immich-https.entrypoints: "https"
+      traefik.http.routers.immich-https.rule: "Host(`${DOMAIN}`)"
+      traefik.http.routers.immich-https.tls.certresolver: "letsencrypt"
 
-      - "traefik.http.middlewares.immich-https.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.immich-https.redirectscheme.permanent=true"
+      traefik.http.middlewares.immich-https.redirectscheme.scheme: "https"
+      traefik.http.middlewares.immich-https.redirectscheme.permanent: "true"
 
-      - "traefik.http.routers.immich-http.entrypoints=http"
-      - "traefik.http.routers.immich-http.rule=Host(`${DOMAIN}`)"
-      - "traefik.http.routers.immich-http.middlewares=immich-https"
+      traefik.http.routers.immich-http.entrypoints: "http"
+      traefik.http.routers.immich-http.rule: "Host(`${DOMAIN}`)"
+      traefik.http.routers.immich-http.middlewares: "immich-https"
 
-      - 'com.centurylinklabs.watchtower.enable=true'
+      com.centurylinklabs.watchtower.enable: "true"
 
     networks:
       - default
