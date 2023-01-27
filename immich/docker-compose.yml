@@ -7,6 +7,9 @@ services:
     image: redis:${REDIS_TAG}
     restart: unless-stopped
 
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+
     labels:
       com.centurylinklabs.watchtower.enable: "true"
 
@@ -14,6 +17,9 @@ services:
   database:
     image: postgres:${DB_TAG}
     restart: unless-stopped
+
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "${DB_USERNAME}", "-d", "${DB_DATABASE_NAME}" ]
 
     labels:
       com.centurylinklabs.watchtower.enable: "true"
