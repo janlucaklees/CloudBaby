@@ -93,6 +93,7 @@ services:
 
     volumes:
       - ${UPLOAD_LOCATION}:/usr/src/app/upload
+      - model-cache:/cache
 
     depends_on:
       - database
@@ -118,7 +119,6 @@ services:
   proxy:
     image: altran1502/immich-proxy:${TAG}
     restart: unless-stopped
-
     environment:
       # Make sure these values get passed through from the env file
       - IMMICH_SERVER_URL
@@ -151,6 +151,8 @@ services:
       - server
       - web
 
+volumes:
+  model-cache:
 
 networks:
   traefik_network:
