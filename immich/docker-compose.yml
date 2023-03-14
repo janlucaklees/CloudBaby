@@ -80,7 +80,6 @@ services:
 
   machine-learning:
     image: altran1502/immich-machine-learning:${TAG}
-    entrypoint: ["/bin/sh", "./entrypoint.sh"]
     restart: unless-stopped
 
     labels:
