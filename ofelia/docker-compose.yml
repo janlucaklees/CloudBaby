@@ -5,6 +5,7 @@ services:
 
   ofelia:
     image: mcuadros/ofelia:${TAG}
+    restart: unless-stopped
 
     command: daemon --docker
 
@@ -13,3 +14,5 @@ services:
 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+
+    network_mode: none
