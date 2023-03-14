@@ -33,7 +33,7 @@ services:
       PG_DATA: /var/lib/postgresql/data
 
     volumes:
-      - ${DB_VOLUME}:/var/lib/postgresql/data
+      - database:/var/lib/postgresql/data
 
 
   server:
@@ -151,8 +151,11 @@ services:
       - server
       - web
 
+
 volumes:
+  database:
   model-cache:
+
 
 networks:
   traefik_network:
