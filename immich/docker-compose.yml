@@ -36,14 +36,27 @@ services:
       - database:/var/lib/postgresql/data
 
 
+  typesense:
+    container_name: immich_typesense
+    image: typesense/typesense:${TYPESENSE_TAG}
+    restart: unless-stopped
+
+    labels:
+      com.centurylinklabs.watchtower.enable: "true"
+
+    environment:
+      - TYPESENSE_API_KEY=${TYPESENSE_API_KEY}
+      - TYPESENSE_DATA_DIR=/data
+
+    volumes:
+      - typesense:/data
+
+
   server:
-    image: altran1502/immich-server:${TAG}
+    image: ghcr.io/immich-app/immich-server:${TAG}
     entrypoint: ["/bin/sh", "./start-server.sh"]
     restart: unless-stopped
 
-    labels:
-      com.centurylinklabs.watchtower.enable: "true"
-
     env_file:
       - .env
     environment:
@@ -55,15 +68,13 @@ services:
     depends_on:
       - cache
       - database
+      - typesense
 
 
   microservices:
-    image: altran1502/immich-server:${TAG}
+    image: ghcr.io/immich-app/immich-server:${TAG}
     entrypoint: ["/bin/sh", "./start-microservices.sh"]
     restart: unless-stopped
-
-    labels:
-      com.centurylinklabs.watchtower.enable: "true"
 
     env_file:
       - .env
@@ -76,14 +87,12 @@ services:
     depends_on:
       - cache
       - database
+      - typesense
 
 
   machine-learning:
-    image: altran1502/immich-machine-learning:${TAG}
+    image: ghcr.io/immich-app/immich-machine-learning:${TAG}
     restart: unless-stopped
-
-    labels:
-      com.centurylinklabs.watchtower.enable: "true"
 
     env_file:
       - .env
@@ -99,24 +108,19 @@ services:
 
 
   web:
-    image: altran1502/immich-web:${TAG}
+    image: ghcr.io/immich-app/immich-web:${TAG}
     entrypoint: ["/bin/sh", "./entrypoint.sh"]
     restart: unless-stopped
 
-    labels:
-      com.centurylinklabs.watchtower.enable: "true"
-
     env_file:
       - .env
-    environment:
-      - PUBLIC_IMMICH_SERVER_URL=${IMMICH_SERVER_URL}
 
     depends_on:
       - database
 
 
   proxy:
-    image: altran1502/immich-proxy:${TAG}
+    image: ghcr.io/immich-app/immich-proxy:${TAG}
     restart: unless-stopped
     environment:
       # Make sure these values get passed through from the env file
@@ -140,8 +144,6 @@ services:
       traefik.http.routers.immich-http.rule: "Host(`${DOMAIN}`)"
       traefik.http.routers.immich-http.middlewares: "immich-https"
 
-      com.centurylinklabs.watchtower.enable: "true"
-
     networks:
       - default
       - traefik_network
@@ -154,6 +156,7 @@ services:
 volumes:
   database:
   model-cache:
+  typesense:
 
 
 networks:
