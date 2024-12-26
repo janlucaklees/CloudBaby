@@ -35,16 +35,6 @@ services:
 
     networks:
       - traefik_network
-  
-
-  imaginary:
-    image: h2non/imaginary:${IMAGINARY_TAG}
-    restart: unless-stopped
-    
-    command: -concurrency 50 -enable-url-source -log-level debug
-
-    environment:
-      TZ: ${TZ}
 
 
   database:
@@ -151,7 +141,6 @@ services:
 
     depends_on:
       - collabora
-      - imaginary
       - database
       - cache
       - nginx
