@@ -38,6 +38,14 @@ services:
 
     networks:
       - traefik_network
+  
+
+  imaginary:
+    image: h2non/imaginary:${IMAGINARY_TAG}
+    command: -enable-url-source
+
+    environment:
+      TZ: ${TZ}
 
 
   database:
