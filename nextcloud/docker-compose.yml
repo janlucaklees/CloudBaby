@@ -39,7 +39,9 @@ services:
 
   imaginary:
     image: h2non/imaginary:${IMAGINARY_TAG}
-    command: -enable-url-source
+    restart: unless-stopped
+    
+    command: -concurrency 50 -enable-url-source -log-level debug
 
     environment:
       TZ: ${TZ}
