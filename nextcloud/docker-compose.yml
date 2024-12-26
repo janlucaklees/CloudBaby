@@ -149,6 +149,7 @@ services:
 
     depends_on:
       - collabora
+      - imaginary
       - database
       - cache
       - nginx
