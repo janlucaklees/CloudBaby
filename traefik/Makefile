@@ -8,3 +8,7 @@ update_config:
 .PHONY: deploy
 deploy: update_config
 	docker stack deploy --detach -c docker-stack.yml traefik
+
+.PHONY: ps
+ps:
+	docker stack ps traefik
