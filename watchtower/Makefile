@@ -1,5 +1,4 @@
 export TZ=Europe/Berlin
-export DOMAIN=traefik.janlucaklees.de
 
 
 .PHONY: start

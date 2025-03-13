@@ -1,163 +1,123 @@
-version: "3.8"
-
 services:
-
-
-  cache:
-    image: redis:${REDIS_TAG}
-    restart: unless-stopped
-
-    healthcheck:
-      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
-
-    labels:
-      com.centurylinklabs.watchtower.enable: "true"
-
-
   database:
-    image: postgres:${DB_TAG}
+    image: docker.io/tensorchord/pgvecto-rs:pg14-v0.2.0@sha256:90724186f0a3517cf6914295b5ab410db9ce23190a2d9d0b9dd6463e3fa298f0
+    container_name: immich_postgres
+
+    command: >-
+      postgres
+      -c shared_preload_libraries=vectors.so
+      -c 'search_path="$$user", public, vectors'
+      -c logging_collector=on
+      -c max_wal_size=2GB
+      -c shared_buffers=512MB
+      -c wal_compression=on
+
     restart: unless-stopped
 
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "${DB_USERNAME}", "-d", "${DB_DATABASE_NAME}" ]
+      test: >-
+        pg_isready --dbname="$${POSTGRES_DB}" --username="$${POSTGRES_USER}" || exit 1;
+        Chksum="$$(psql --dbname="$${POSTGRES_DB}" --username="$${POSTGRES_USER}" --tuples-only --no-align
+        --command='SELECT COALESCE(SUM(checksum_failures), 0) FROM pg_stat_database')";
+        echo "checksum failure count is $$Chksum";
+        [ "$$Chksum" = '0' ] || exit 1
+      interval: 5m
+      start_interval: 30s
+      start_period: 5m
 
-    labels:
-      com.centurylinklabs.watchtower.enable: "true"
-
-    env_file:
-      - .env
     environment:
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_DB: ${DB_DATABASE_NAME}
-      PG_DATA: /var/lib/postgresql/data
+      TZ: "${TZ}"
+
+      POSTGRES_DB: "${DATABASE_NAME}"
+      POSTGRES_USER: "${DATABASE_USER}"
+      POSTGRES_PASSWORD_FILE: "/run/secrets/immich_database_password"
+
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+
+    secrets:
+      - immich_database_password
 
     volumes:
       - database:/var/lib/postgresql/data
 
+  cache:
+    image: "redis:alpine"
+    container_name: immich_cache
 
-  typesense:
-    container_name: immich_typesense
-    image: typesense/typesense:${TYPESENSE_TAG}
     restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
 
     labels:
       com.centurylinklabs.watchtower.enable: "true"
 
     environment:
-      - TYPESENSE_API_KEY=${TYPESENSE_API_KEY}
-      - TYPESENSE_DATA_DIR=/data
+      TZ: "${TZ}"
 
-    volumes:
-      - typesense:/data
+  immich-server:
+    image: ghcr.io/immich-app/immich-server:${VERSION}
+    container_name: immich_server
 
-
-  server:
-    image: ghcr.io/immich-app/immich-server:${TAG}
-    entrypoint: ["/bin/sh", "./start-server.sh"]
     restart: unless-stopped
 
-    env_file:
-      - .env
-    environment:
-      - NODE_ENV=production
+    environment: &general-env
+      TZ: "${TZ}"
 
-    volumes:
-      - ${UPLOAD_LOCATION}:/usr/src/app/upload
+      DB_DATABASE_NAME: "${DATABASE_NAME}"
+      DB_USERNAME: "${DATABASE_USER}"
+      DB_PASSWORD_FILE: "/run/secrets/immich_database_password"
 
-    depends_on:
-      - cache
-      - database
-      - typesense
+      REDIS_HOSTNAME: "cache"
 
-
-  microservices:
-    image: ghcr.io/immich-app/immich-server:${TAG}
-    entrypoint: ["/bin/sh", "./start-microservices.sh"]
-    restart: unless-stopped
-
-    env_file:
-      - .env
-    environment:
-      - NODE_ENV=production
-
-    volumes:
-      - ${UPLOAD_LOCATION}:/usr/src/app/upload
-
-    depends_on:
-      - cache
-      - database
-      - typesense
-
-
-  machine-learning:
-    image: ghcr.io/immich-app/immich-machine-learning:${TAG}
-    restart: unless-stopped
-
-    env_file:
-      - .env
-    environment:
-      - NODE_ENV=production
-
-    volumes:
-      - ${UPLOAD_LOCATION}:/usr/src/app/upload
-      - model-cache:/cache
-
-    depends_on:
-      - database
-
-
-  web:
-    image: ghcr.io/immich-app/immich-web:${TAG}
-    entrypoint: ["/bin/sh", "./entrypoint.sh"]
-    restart: unless-stopped
-
-    env_file:
-      - .env
-
-    depends_on:
-      - database
-
-
-  proxy:
-    image: ghcr.io/immich-app/immich-proxy:${TAG}
-    restart: unless-stopped
-    environment:
-      # Make sure these values get passed through from the env file
-      - IMMICH_SERVER_URL
-      - IMMICH_WEB_URL
+      IMMICH_TRUSTED_PROXIES: "${TRAEFIK_CONTAINER_IP}"
 
     labels:
       traefik.enable: "true"
       traefik.docker.network: "traefik_network"
 
-      traefik.http.services.immich.loadbalancer.server.port: "8080"
+      traefik.http.routers.immich.entrypoints: "websecure"
+      traefik.http.routers.immich.rule: "Host(`${DOMAIN}`)"
+      traefik.http.routers.immich.tls.certresolver: "letsencrypt"
+      traefik.http.services.immich.loadbalancer.server.port: "2283"
 
-      traefik.http.routers.immich-https.entrypoints: "https"
-      traefik.http.routers.immich-https.rule: "Host(`${DOMAIN}`)"
-      traefik.http.routers.immich-https.tls.certresolver: "letsencrypt"
+    secrets: &general-secrets
+      - immich_database_password
 
-      traefik.http.middlewares.immich-https.redirectscheme.scheme: "https"
-      traefik.http.middlewares.immich-https.redirectscheme.permanent: "true"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
 
-      traefik.http.routers.immich-http.entrypoints: "http"
-      traefik.http.routers.immich-http.rule: "Host(`${DOMAIN}`)"
-      traefik.http.routers.immich-http.middlewares: "immich-https"
+      - upload:/usr/src/app/upload
 
     networks:
       - default
       - traefik_network
 
     depends_on:
-      - server
-      - web
+      - cache
+      - database
 
+  immich-machine-learning:
+    image: ghcr.io/immich-app/immich-machine-learning:${VERSION}
+    container_name: immich_machine_learning
+
+    restart: unless-stopped
+
+    environment: *general-env
+
+    secrets: *general-secrets
+
+    volumes:
+      - model-cache:/cache
+
+secrets:
+  immich_database_password:
+    file: ./immich_database_password.secret
 
 volumes:
   database:
   model-cache:
-  typesense:
-
+  upload:
 
 networks:
   traefik_network:

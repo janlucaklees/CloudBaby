@@ -1,3 +1,2 @@
-.env
-.htpasswd
-volumes
+*.sql
+*.secret
