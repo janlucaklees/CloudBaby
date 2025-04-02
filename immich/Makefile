@@ -1,7 +1,7 @@
 export TZ=Europe/Berlin
 export DOMAIN=immich.janlucaklees.de
 
-export VERSION=v1.129.0
+export VERSION=v1.131.3
 
 export TRAEFIK_CONTAINER_IP := $(shell docker inspect --format '{{ .NetworkSettings.Networks.traefik_network.IPAddress }}' $(shell docker ps -aqf "name=traefik"))
 

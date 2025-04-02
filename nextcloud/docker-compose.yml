@@ -78,7 +78,7 @@ services:
       TZ: '${TZ}'
 
   nextcloud:
-    image: 'nextcloud:30-fpm-alpine'
+    image: 'nextcloud:31-fpm-alpine'
     container_name: 'nextcloud_nextcloud'
 
     restart: 'unless-stopped'
